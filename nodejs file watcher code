@@ -1,0 +1,8 @@
+import require
+
+var watch = require('node-watch');
+
+watch('F:\ACA\project\test\', function(filename) {
+  console.log(filename, 'changed.');
+            }
+     );
