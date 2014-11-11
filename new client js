@@ -1,0 +1,75 @@
+var net = require('net');
+var fs=require('fs');
+
+
+var fs = require('fs');
+
+function readLines(input, func) {
+  var remaining = '';
+
+  input.on('data', function(data) {
+    remaining += data;
+    //var index = remaining.indexOf('\n');
+    //while (index > -1) {
+      //var line = remaining.substring(0, index);
+      //remaining = remaining.substring(index + 1);
+      //func(line);
+      //index = remaining.indexOf('\n');
+  });
+
+  input.on('end', function() {
+    if (remaining.length > 0) {
+      func(remaining);
+    }
+  });
+}
+
+function func(data) {
+    var HOST = '';
+    var PORT = 5000;
+    
+    var client = new net.Socket();
+client.connect(PORT, HOST, function() {
+    
+	var a=data;
+    console.log('CONNECTED TO: ' + HOST + ':' + PORT);
+    // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
+    client.write(data);
+
+});
+
+// Add a 'data' event handler for the client socket
+// data is what the server sent to this socket
+client.on('data', function(data) {
+    
+    console.log('DATA: ' + data);
+    // Close the client socket completely
+    client.destroy();
+    
+});
+
+// Add a 'close' event handler for the client socket
+client.on('close', function() {
+    console.log('Connection closed');
+});
+  console.log('Line: ' + data);
+}
+
+// Require the file system
+  fs = require("fs");
+// Watch the sim directory
+fs.watch("F:\\test2\\", { persistent: true }, function (event, fileName) {
+    var x =event;
+    var y= "F:\\test2\\"+fileName;
+    start(y,x);
+  console.log("Event: " + event + y);
+  console.log(fileName + "\n");
+});
+
+function start(y,x){
+  console.log(x + "," +y);
+
+var input = fs.createReadStream(y);
+readLines(input, func);
+
+}
