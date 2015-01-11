@@ -1,99 +1,116 @@
-var net = require('net');
-var fs=require('fs');
+//watcher
+var fs = require("fs");
+
+fs.watch('F:\\test2\\', { persistent: true }, function (event, fileName) {
+    
+  var path= "F:\\test2\\"+fileName;
+  console.log("Event: " + event + path /*+ fileSizeInBytes*/);
+  console.log(fileName + "\n");
+  
+ var changedFileSize = readFileSize(path);
+//  createDbConn();
+ readDb(fileName);
+ var readData = readfile(fileName,fileSize);
+  updateDb(fileName,changedFileSize);
+  serverConn(readData);
+  //start(path,event);
+  
+});
 
 
-var fs = require('fs');
+//read file size
+ function readFileSize(path){
+ var fs = require("fs"); //Load the filesystem module
+ var stats = fs.statSync(path);
+ var fileSizeInBytes = stats["size"];
+ console.log('file size =' + fileSizeInBytes);
+ return fileSizeInBytes;
+ }
+ 
+ 
+//create db connection 
+function createDbConn(){
+var databaseUrl = "clientdb"; 
+var collections = ["file"]
+var db = require("mongojs").connect(databaseUrl, collections);
+} 
+ 
+ 
+ 
+//update file size in db 
+function updateDb(fileName,changedFileSize){
+    var databaseUrl = "clientdb"; 
+var collections = ["file"]
+var db = require("mongojs").connect(databaseUrl, collections);
 
-function readLines(input, func) {
-  var remaining = '';
+ 
+ db.file.update({id:fileName}, {$set: {size: changedFileSize}}, function(err, updated) {
+  if( err || !updated ) console.log("file size not updated");
+  else console.log("file size updated");
+});
+} 
+ 
+//read file size from db
+function readDb(fileName,fn){
+    var databaseUrl = "clientdb"; 
+var collections = ["file"]
+var db = require("mongojs").connect(databaseUrl, collections);
 
-  input.on('data', function(data) {
-    remaining += data;
-    //var index = remaining.indexOf('\n');
-    //while (index > -1) {
-      //var line = remaining.substring(0, index);
-      //remaining = remaining.substring(index + 1);
-      //func(line);
-      //index = remaining.indexOf('\n');
-  });
-
-  input.on('end', function() {
-    if (remaining.length > 0) {
-      func(remaining);
-    }
-  });
+ 
+db.file.find({id:fileName},function(err,readfile){
+	console.log(readfile);
+    var x=readfile;
+    fileSize=2;
+	return (fileSize);   //check hw to rtrv size	
+ });
 }
 
-function func(data) {
+
+//read file
+function readFile(fileName,fileSize){
+var fs = require("fs");
+ 
+    fs.exists(fileName, function (exists) {
+        if (exists) {
+            fs.stat(fileName, function (error, stats) {
+                fs.open(fileName, "r", function (error, fd) {
+                    var buffer = new Buffer(stats.size); //buffer hvn file size nt required
+					
+                    fs.read(fd, buffer, 0, buffer.length, fileSize, function (error, bytesRead, buffer) {
+                        var data = buffer.toString("utf8", 0, buffer.length);
+                        console.log(data+"\n");
+						
+                        fs.close(fd);
+                    });
+                });
+            });
+			return (data);
+        }
+		else console.log("file does not exist");
+    });
+ }
+ 
+ 
+ 
+//send data to server 
+function serverConn(readData) {
     var HOST = '192.168.25.1';
     var PORT = 80;
     
     var client = new net.Socket();
-client.connect(PORT, HOST, function() {
+client.connect(PORT, HOST, function(readData) {
     
 	var a=data;
     console.log('CONNECTED TO: ' + HOST + ':' + PORT);
     // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
-    client.write(data);
-
+    client.write(readData);
+	console.log("\n data sent to server");
 });
 
-// Add a 'data' event handler for the client socket
-// data is what the server sent to this socket
-client.on('data', function(data) {
-    
-    console.log('DATA: ' + data);
-    // Close the client socket completely
-    client.destroy();
-    
-});
 
 // Add a 'close' event handler for the client socket
 client.on('close', function() {
-    console.log('Connection closed');
+    console.log('Connection closed \n');
 });
-  console.log('Line: ' + data);
-}
-
-// Require the file system
-  fs = require("fs");
-// Watch the sim directory
-fs.watch("F:\\test2\\", { persistent: true }, function (event, fileName) {
-    var x =event;
-    var y= "F:\\test2\\"+fileName;
-    var fs = require("fs"); //Load the filesystem module
- var stats = fs.statSync(y)
- var fileSizeInBytes = stats["size"]//get the bytesize
-console.log(fileSizeInBytes);
-   
-    var fs = require('fs');
-var Buffer = require('buffer').Buffer;
-var constants = require('constants');
-
-fs.open(fileName, 'r', function(status, fd) {
-    if (status) {
-        console.log(status.message);
-        return;
-    }
-    var buffer = new Buffer(100);
-    fs.read(fd, buffer, 0, 100, fileSizeInBytes, function(err, num) { //fs.read(fd, buffer, offset, length, position, callback); 
-        console.log(buffer.toString('utf-8', 0, num));
-        var z=buffer.toString('utf-8', 0, num);
-        
-   });
-});
-    
-    
-    
-    start(y,x);//go to function start
-  console.log("Event: " + event + y+ fileSizeInBytes);
-  console.log(fileName + "\n");
-});
-
-function start(y,x){
-  console.log(x + "," +y);
-
-var input = fs.createReadStream(y);
-readLines(input, func);
-
+  console.log('\n Line: ' + readData);
 }
