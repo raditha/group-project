@@ -1,0 +1,187 @@
+//watcher
+var fs = require("fs");
+
+fs.watch('F:\\test2\\', { persistent: true }, function (event, fileName) {
+    
+  var path= "F:\\test2\\"+fileName;
+  console.log("Event: " + event + path /*+ fileSizeInBytes*/);
+  console.log(fileName + "\n");
+  
+ var changedFileSize = readFileSize(path);
+    
+ createDbConn(changedFileSize,fileName);
+ 
+ //var readData = readfile(fileName,fileSize);
+  updateDb(fileName,changedFileSize);
+    readDb(fileName);
+ // serverConn(readData);
+  //start(path,event);
+  
+});
+
+
+//read file size
+ function readFileSize(path){
+ var fs = require("fs"); //Load the filesystem module
+ var stats = fs.statSync(path);
+ var fileSizeInBytes = stats["size"];
+ console.log('file size =' + fileSizeInBytes);
+ return fileSizeInBytes;
+ }
+ 
+ 
+//create db connection 
+function createDbConn(changedFileSize,fileName){
+    var mysql = require('mysql');
+ 
+var connection = mysql.createConnection(
+    {
+      host     : 'localhost',
+      user     : 'root',
+      password : '',
+      database : 'clientdb',
+    }
+);
+ 
+connection.connect();
+//var updateRecord= 'UPDATE FILE SET size =:size where name=:name',{size=ChangedFileSize,name=fileName};
+connection.query('UPDATE FILE SET size =:size WHERE name=:name',{size : changedFileSize,name:fileName},function(err,rows, fields){
+if (err) throw err;
+console.log("record updated");  
+ });
+var queryString = 'SELECT * FROM file';
+ //connection.quert(insertRecord,function(err,
+connection.query(queryString, function(err, rows, fields) {
+    if (err) throw err;
+ 
+    for (var i in rows) {
+        console.log('Post Titles: ', rows[i].size);
+        var kalinSize=rows[i].size;
+        console.log(kalinSize);
+    }
+});
+ 
+connection.end();
+
+               }
+
+ 
+ 
+ 
+//update file size in db 
+function updateDb(fileName,changedFileSize){
+    var databaseUrl = "clientdb"; 
+var collections = ["file"]
+var db = require("mongojs").connect(databaseUrl, collections);
+
+ 
+ db.file.update({"name":fileName}, {$set: {"size": changedFileSize}}, function(err, updated) {
+  if( err || !updated ) console.log("file size not updated");
+  else console.log("file size updated");
+});
+} 
+ 
+//read file size from db
+function readDb(fileName){
+
+    function db(fileName,fn){
+    var databaseUrl = "clientdb"; 
+var collections = ["file"]
+var db = require("mongojs").connect(databaseUrl, collections);
+
+//console.log(readfile); 
+db.file.find({name:fileName},{size:1,_id:0},function(err,fileSize){
+   fn(fileSize,fileName);
+	//console.log(fileSize +"*");
+    //var x=fileSize;
+    //console.log(x);
+    
+    
+	//return (fileSize);   //check hw to rtrv size	
+ });
+}
+db(fileName, function(fileSize,fileName){
+console.log(fileSize);
+   // var  x=toString.fileSize;
+    //y=x.substring(
+ //console.log(x);     
+   // return x;
+  
+    // this is where you get the return value
+  var fs = require("fs");
+ 
+    fs.exists(fileName, function (exists) {
+        if (exists) {
+            fs.stat(fileName, function (error, stats) {
+                fs.open(fileName, "r", function (error, fd) {
+                    var buffer = new Buffer(stats.size); //buffer hvn file size nt required
+					
+                    fs.read(fd, buffer, 0, buffer.length, 0, function (error, bytesRead, buffer) {
+                        var data = buffer.toString("utf8", 0, buffer.length);
+                        console.log(data+"\n");
+						 //serverConn(data);
+                       var data1=toString(data);
+                        console.log(data1);
+                        //fs.close(fd);
+                          var net = require('net');
+                        var HOST = '192.168.25.1';
+                        var PORT = 80;
+    
+                        var client = new net.Socket();
+                        client.connect(PORT, HOST, function(err,data) {
+        if(err || !data1){console.log("dont goto hell");}
+	   //var a=data;
+                         else{
+                        console.log('CONNECTED TO: ' + HOST + ':' + PORT);
+                        console.log(data1+"*");
+                        // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
+                        client.write(data1);
+    
+	                   console.log("\n data sent to server");}
+});
+
+
+// Add a 'close' event handler for the client socket
+client.on('close', function() {
+    console.log('Connection closed \n');
+});
+  console.log('\n Line:2 ' + data1);
+
+                    });
+                });
+            });
+			//return (data);
+        }
+		else console.log("file does not exist");
+    });
+ }
+);
+}
+
+
+//read file
+
+//send data to server 
+function serverConn(reaadData) {
+   var net = require('net');
+    var HOST = '192.168.25.1';
+    var PORT = 80;
+    
+    var client = new net.Socket();
+client.connect(PORT, HOST, function(reaadData) {
+    
+	//var a=data;
+    console.log('CONNECTED TO: ' + HOST + ':' + PORT);
+    console.log(reaadData);
+    // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
+    client.write(reaadData);
+	console.log("\n data sent to server");
+});
+
+
+// Add a 'close' event handler for the client socket
+client.on('close', function() {
+    console.log('Connection closed \n');
+});
+  console.log('\n Line: ' + reaadData);
+}
